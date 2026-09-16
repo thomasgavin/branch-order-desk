@@ -247,7 +247,7 @@ function visible(){
     if(state.filter && o.state !== state.filter) return false;
     if(!q) return true;
     return (o.so+" "+o.customer+" "+o.phone+" "+o.address).toLowerCase().includes(q);
-  });
+  }).sort((a,b)=> ORDER.indexOf(a.state) - ORDER.indexOf(b.state));
 }
 
 function renderRail(){
@@ -280,6 +280,9 @@ function renderRows(){
   if(!list.length){
     const e = el("div","empty"); e.textContent = "No orders match that search."; host.appendChild(e); return;
   }
+  // Lead with a two-task order so the linked delivery + installation reads at a glance.
+  let openAt = list.findIndex(o => o.tasks.length > 1);
+  if(openAt < 0) openAt = 0;
   list.forEach((o,i)=>{
     const row = el("div","row"); row.dataset.open = "false";
     const head = el("button","row-head");
@@ -331,7 +334,7 @@ function renderRows(){
       head.setAttribute("aria-expanded", String(!open));
       det.hidden = open;
     };
-    if(i === 0){ row.dataset.open="true"; head.setAttribute("aria-expanded","true"); det.hidden=false; }
+    if(i === openAt){ row.dataset.open="true"; head.setAttribute("aria-expanded","true"); det.hidden=false; }
     row.append(head, det);
     host.appendChild(row);
   });

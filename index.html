@@ -1,0 +1,388 @@
+<title>Branch Order Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Locus dashboard tokens ("MUI - New Web"). Light only, by design. */
+:root{
+  --blue:#266ef1; --blue-dark:#0054dd; --blue-light:#9fc2ff; --blue-soft:#c8dcff;
+  --purple:#944de7; --purple-soft:#e2d3ff;
+  --green:#0e8345; --green-soft:#a9efca;
+  --orange:#e65301; --orange-soft:#ffd4c5;
+  --lblue:#0188cc; --lblue-soft:#bde2ff;
+  --yellow:#f6bc2e; --yellow-600:#c99600; --yellow-soft:#ffe9be;
+  --red:#b50000; --red-soft:#ffb6ab;
+  --g50:#f5f5f5; --g100:#e0e0e0; --g200:#c2c2c2; --g300:#a3a3a3;
+  --g500:#757575; --g600:#666666; --g700:#525252; --g800:#323232; --g900:#141414;
+  --text:#141414; --text-2:#666666;
+  --r2:8px; --r3:12px; --r4:16px; --pill:999px;
+  --e1:0 0 4px 0 rgba(17,19,24,.16);
+  --e2:0 4px 8px 0 rgba(17,19,24,.16);
+  --e3:0 14px 40px -8px rgba(17,19,24,.22);
+  --bg:#e9effc; --bg2:#f4f7fe;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:Montserrat,Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);
+  background-attachment:fixed;
+  color:var(--text);line-height:1.5;font-size:14px;
+  -webkit-font-smoothing:antialiased;min-height:100vh;
+}
+button,select,input{font-family:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-variant-numeric:tabular-nums;letter-spacing:.01em}
+
+/* ---------- header ---------- */
+header{
+  background:#fff;border-bottom:1px solid var(--g100);
+  padding:14px 32px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  position:sticky;top:0;z-index:20;
+}
+.wordmark{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+.wordmark .squares{display:grid;grid-template-columns:8px 8px;grid-gap:2px}
+.wordmark .squares i{width:8px;height:8px;border-radius:2px;display:block}
+.wordmark .squares i:nth-child(1){background:var(--blue)}
+.wordmark .squares i:nth-child(2){background:var(--green)}
+.wordmark .squares i:nth-child(3){background:var(--purple)}
+.wordmark .squares i:nth-child(4){background:var(--orange)}
+.wordmark .x{color:var(--g300);font-weight:400;margin:0 2px}
+.spacer{flex:1}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--g500);font-weight:600}
+select,input[type=search]{
+  font-size:13px;color:var(--text);background:#fff;
+  border:1px solid var(--g100);border-radius:var(--r2);padding:8px 11px;min-width:215px;
+}
+input[type=search]{min-width:265px}
+.hdr-chip{
+  font-size:12px;font-weight:500;color:var(--g600);background:var(--g50);
+  border:1px solid var(--g100);padding:7px 14px;border-radius:var(--pill);
+  display:flex;align-items:center;gap:7px;white-space:nowrap;align-self:flex-end;
+}
+.hdr-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+
+/* ---------- branch bar ---------- */
+.branchbar{max-width:1320px;margin:0 auto;padding:30px 32px 0;display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap}
+h1{font-size:23px;line-height:1.24;font-weight:700;letter-spacing:-.02em;text-wrap:balance}
+.loc{color:var(--g600);font-size:13px;margin-top:4px}
+.recv{
+  font-size:12px;color:var(--g700);background:#fff;border:1px solid var(--g100);
+  border-radius:var(--r2);padding:8px 13px;box-shadow:var(--e1);
+}
+.recv b{font-weight:600;color:var(--text)}
+
+/* ---------- filter rail ---------- */
+.rail{max-width:1320px;margin:0 auto;padding:18px 32px 0;display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:12.5px;font-weight:600;color:var(--g700);
+  background:#fff;border:1px solid var(--g100);border-radius:var(--pill);padding:7px 14px;
+  transition:border-color .18s,box-shadow .18s;
+}
+.chip:hover{border-color:var(--g200);box-shadow:var(--e1)}
+.chip[aria-pressed="true"]{border-color:var(--blue);color:var(--blue-dark);box-shadow:0 0 0 1px var(--blue)}
+.chip .n{font-variant-numeric:tabular-nums;font-weight:700}
+.chip .pip{width:8px;height:8px;border-radius:50%}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1320px;margin:0 auto;padding:18px 32px 60px;display:grid;grid-template-columns:minmax(0,1fr) 348px;gap:22px;align-items:start}
+@media (max-width:1060px){.wrap{grid-template-columns:minmax(0,1fr)}}
+.panel{background:#fff;border:1px solid var(--g100);border-radius:var(--r3);box-shadow:var(--e1);overflow:hidden}
+.panel-hd{display:flex;align-items:baseline;gap:10px;padding:14px 18px;border-bottom:1px solid var(--g100)}
+.panel-hd h2{font-size:13px;font-weight:600;letter-spacing:.01em}
+.panel-hd .cnt{font-size:12px;color:var(--g500);font-variant-numeric:tabular-nums}
+
+/* ---------- order rows ---------- */
+.rows{display:flex;flex-direction:column}
+.row{border-bottom:1px solid var(--g100)}
+.row:last-child{border-bottom:0}
+.row-head{
+  width:100%;text-align:left;font-size:14px;color:inherit;background:none;border:0;cursor:pointer;
+  display:grid;grid-template-columns:18px minmax(0,1.5fr) minmax(0,1.1fr) 92px 100px 122px;
+  gap:14px;align-items:center;padding:12px 18px;transition:background .15s;
+}
+.row-head:hover{background:var(--g50)}
+.row[data-open="true"]{background:#fbfcff}
+@media (max-width:780px){
+  .row-head{grid-template-columns:18px minmax(0,1fr) 122px;row-gap:4px}
+  .row-head .h-window,.row-head .h-val,.row-head .h-items{display:none}
+}
+.caret{color:var(--g300);transition:transform .18s;display:inline-block;font-size:11px}
+.row[data-open="true"] .caret{transform:rotate(90deg);color:var(--blue)}
+.so{font-size:12.5px;font-weight:600;letter-spacing:-.01em}
+.who{font-size:12px;color:var(--g600);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-items{font-size:12px;color:var(--g700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-window{font-size:12px;color:var(--g600)}
+.h-val{font-size:13px;font-weight:600;text-align:right}
+.cod{display:block;font-size:9.5px;font-weight:700;color:var(--orange);letter-spacing:.06em;text-align:right;margin-top:1px}
+
+/* ---------- status ---------- */
+.badge{
+  display:inline-flex;align-items:center;gap:6px;justify-self:start;
+  font-size:11px;font-weight:600;border-radius:var(--pill);padding:5px 11px;white-space:nowrap
+}
+.badge .pip{width:6px;height:6px;border-radius:50%}
+.s-DELIVERED{background:var(--green-soft);color:var(--green)} .s-DELIVERED .pip{background:var(--green)}
+.s-IN_TRANSIT{background:var(--lblue-soft);color:var(--lblue)} .s-IN_TRANSIT .pip{background:var(--lblue)}
+.s-OUT_FOR_DELIVERY{background:var(--orange-soft);color:var(--orange)} .s-OUT_FOR_DELIVERY .pip{background:var(--orange)}
+.s-SCHEDULED{background:var(--g50);color:var(--g600);box-shadow:inset 0 0 0 1px var(--g100)} .s-SCHEDULED .pip{background:var(--g300)}
+.s-EXCEPTION{background:var(--red-soft);color:var(--red)} .s-EXCEPTION .pip{background:var(--red)}
+
+/* ---------- detail ---------- */
+.detail{padding:0 18px 20px 50px;background:#fbfcff}
+.detail[hidden]{display:none}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:16px 26px;padding:6px 0 2px}
+.dl dt{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--g500);font-weight:600}
+.dl dd{margin-top:4px;font-size:13px;color:var(--text)}
+.tasks{margin-top:16px;display:flex;flex-direction:column;gap:9px}
+.task{
+  display:grid;grid-template-columns:118px minmax(0,1fr) auto;gap:16px;align-items:center;
+  background:#fff;border:1px solid var(--g100);border-radius:var(--r2);padding:11px 14px;
+  border-left:3px solid var(--g200);
+}
+.task.t-Delivery{border-left-color:var(--blue)}
+.task.t-Installation{border-left-color:var(--purple)}
+@media (max-width:660px){.task{grid-template-columns:minmax(0,1fr);gap:9px}}
+.task .kind{font-size:12.5px;font-weight:600}
+.task .kind small{display:block;font-weight:500;color:var(--g500);font-size:10.5px;margin-top:2px}
+.task .meta{font-size:12px;color:var(--g600)}
+.task .meta b{color:var(--g800);font-weight:600}
+.task .right{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.samevisit{
+  font-size:9.5px;font-weight:700;letter-spacing:.07em;color:var(--purple);
+  background:var(--purple-soft);border-radius:4px;padding:4px 8px;white-space:nowrap
+}
+.items{margin-top:14px;list-style:none;display:flex;flex-wrap:wrap;gap:7px}
+.items li{font-size:11.5px;color:var(--g700);background:#fff;border:1px solid var(--g100);border-radius:var(--r2);padding:5px 10px}
+.items li span{color:var(--g500);font-weight:600}
+
+/* ---------- inbound ---------- */
+.inb{padding:14px 16px;border-bottom:1px solid var(--g100)}
+.inb:last-child{border-bottom:0}
+.inb-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.inb-ref{font-size:12.5px;font-weight:600}
+.inb-meta{font-size:12px;color:var(--g600);margin-top:7px;display:flex;gap:14px;flex-wrap:wrap}
+.inb-meta b{color:var(--g800);font-weight:600}
+.bar{height:6px;border-radius:3px;background:var(--g100);margin-top:11px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue);border-radius:3px}
+.inb-items{margin-top:11px;list-style:none;font-size:11.5px;color:var(--g600)}
+.inb-items li{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+.inb-items li b{color:var(--g800);font-weight:600}
+
+.empty{padding:38px 18px;text-align:center;color:var(--g500);font-size:13px}
+.foot{max-width:1320px;margin:0 auto;padding:0 32px 48px;color:var(--g500);font-size:11.5px;line-height:1.65}
+.foot b{color:var(--g700);font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header>
+  <div class="wordmark">
+    <span class="squares"><i></i><i></i><i></i><i></i></span>
+    Locus <span class="x">×</span> Abenson
+  </div>
+  <div class="spacer"></div>
+  <div class="field">
+    <label for="branch">Branch</label>
+    <select id="branch"></select>
+  </div>
+  <div class="field">
+    <label for="q">Find an order</label>
+    <input id="q" type="search" placeholder="SO number, customer, or mobile" autocomplete="off">
+  </div>
+  <span class="hdr-chip"><span class="dot"></span><span id="daychip"></span></span>
+</header>
+
+<div class="branchbar">
+  <div>
+    <h1 id="bname"></h1>
+    <div class="loc" id="bloc"></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="recv" id="brecv"></div>
+</div>
+
+<div class="rail" id="rail"></div>
+
+<main class="wrap">
+  <section class="panel">
+    <div class="panel-hd"><h2>Customer orders sold from this branch</h2><span class="cnt" id="ocount"></span></div>
+    <div class="rows" id="rows"></div>
+  </section>
+
+  <aside class="panel">
+    <div class="panel-hd"><h2>Inbound to this branch</h2><span class="cnt" id="icount"></span></div>
+    <div id="inbound"></div>
+  </aside>
+</main>
+
+<p class="foot">
+  Prototype built on live <b>abenson-demo</b> data: branches, customers, line items, service
+  durations and delivery windows are read from the account. Task states, ETAs and crew names are
+  illustrative, since the order book is still unplanned.
+</p>
+
+<script>
+const DATA = {"generatedFor":"abenson-demo","orderDate":"2026-09-17","branches":[{"id":"ABS-STR-015","name":"Abenson Chino Roces","city":"Makati City","province":"Metro Manila","format":"HIGHSTREET","receiving":"08:00-17:00","orders":[{"so":"SO-2026-40007","customer":"Marites Salazar","phone":"+639278860678","address":"Blk 4 Lot 32 Phase 2 Ayala Avenue, Makati City, Metro Manila, Philippines","city":"Makati City","window":"13:00-17:00","value":50490,"cod":false,"items":[{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":1},{"name":"Microwave Oven 25L","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0007","state":"IN_TRANSIT","eta":"10:35","crew":"Arnel Dizon","vehicle":"CVN3114","serviceMin":12,"weightKg":16.2}],"state":"IN_TRANSIT"},{"so":"SO-2026-40041","customer":"Lourdes Reyes","phone":"+639944971980","address":"Blk 53 Lot 40 Ayala Avenue, Makati City, Metro Manila, Philippines","city":"Makati City","window":"12:00-16:00","value":112980,"cod":false,"items":[{"name":"Microwave Oven 25L","qty":2},{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":1},{"name":"65\" 4K Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0041","state":"SCHEDULED","eta":"09:20","crew":"Arnel Dizon","vehicle":"L300-NBL2291","serviceMin":39,"weightKg":56.2}],"state":"SCHEDULED"},{"so":"SO-2026-40068","customer":"Josefina Navarro","phone":"+639851144244","address":"Blk 19 Lot 29 Phase 6 Chino Roces Avenue, Makati City, Metro Manila, Philippines","city":"Makati City","window":"12:00-16:00","value":99980,"cod":false,"items":[{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":2},{"name":"Water Dispenser Hot and Cold","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0068","state":"DELIVERED","eta":"09:35","crew":"Joel Bernardo","vehicle":"CVN3114","serviceMin":30,"weightKg":36.4}],"state":"DELIVERED"},{"so":"SO-2026-40076","customer":"Lorna Mendoza","phone":"+639726336786","address":"Unit 10B EDSA, Magallanes, Makati City, Metro Manila, Philippines","city":"Makati City","window":"13:00-17:00","value":100980,"cod":false,"items":[{"name":"Microwave Oven 25L","qty":2},{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0076","state":"DELIVERED","eta":"16:35","crew":"Arnel Dizon","vehicle":"L300-NBL2291","serviceMin":24,"weightKg":32.4}],"state":"DELIVERED"},{"so":"SO-2026-40095","customer":"Cecilia Ramos","phone":"+639808272908","address":"783-A EDSA, Magallanes, Makati City, Metro Manila, Philippines","city":"Makati City","window":"12:00-16:00","value":60480,"cod":false,"items":[{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":1},{"name":"Microwave Oven 25L","qty":2},{"name":"Stand Fan 16\"","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0095","state":"DELIVERED","eta":"11:50","crew":"Arnel Dizon","vehicle":"L300-NBL2291","serviceMin":24,"weightKg":36.2}],"state":"DELIVERED"},{"so":"SO-2026-40105","customer":"Manuel Bautista","phone":"+639887301431","address":"Unit 9B Chino Roces Avenue, Makati City, Metro Manila, Philippines","city":"Makati City","window":"14:00-18:00","value":18780,"cod":false,"items":[{"name":"Rice Cooker 1.8L","qty":2},{"name":"Microwave Oven 25L","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0105","state":"OUT_FOR_DELIVERY","eta":"08:15","crew":"Arnel Dizon","vehicle":"L300-NBL2291","serviceMin":24,"weightKg":34.0}],"state":"OUT_FOR_DELIVERY"},{"so":"SO-2026-50011","customer":"Antonio Villanueva","phone":"+639815318099","address":"382-A EDSA, Magallanes, Makati City, Metro Manila, Philippines","city":"Makati City","window":"12:00-16:00","value":18995,"cod":false,"items":[{"name":"Chest Freezer 7 cu.ft","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1011","state":"SCHEDULED","eta":"12:35","crew":"Jomar Pascual","vehicle":"L300-NBL2291","serviceMin":20,"weightKg":55.0},{"type":"Installation","id":"ABS-I-1011","state":"SCHEDULED","eta":"13:00","crew":"Jomar Pascual","vehicle":"L300-NBL2291","serviceMin":15,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-50046","customer":"Gloria Alvarez","phone":"+639858585551","address":"Unit 11B Ayala Avenue, Makati City, Metro Manila, Philippines","city":"Makati City","window":"12:00-16:00","value":15995,"cod":false,"items":[{"name":"4-Burner Gas Range with Oven","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1046","state":"OUT_FOR_DELIVERY","eta":"16:50","crew":"Jomar Pascual","vehicle":"CVN3114","serviceMin":15,"weightKg":38.0},{"type":"Installation","id":"ABS-I-1046","state":"IN_TRANSIT","eta":"17:40","crew":"Jomar Pascual","vehicle":"CVN3114","serviceMin":30,"sameVisit":true}],"state":"OUT_FOR_DELIVERY"},{"so":"SO-2026-50079","customer":"Jose Bernardo","phone":"+639506956020","address":"No. 749 Ayala Avenue, Makati City, Metro Manila, Philippines","city":"Makati City","window":"13:00-17:00","value":17995,"cod":false,"items":[{"name":"43\" Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1079","state":"OUT_FOR_DELIVERY","eta":"11:20","crew":"Rodel Manalo","vehicle":"L300-NBL2291","serviceMin":10,"weightKg":9.0},{"type":"Installation","id":"ABS-I-1079","state":"IN_TRANSIT","eta":"12:40","crew":"Rodel Manalo","vehicle":"L300-NBL2291","serviceMin":30,"sameVisit":true}],"state":"OUT_FOR_DELIVERY"},{"so":"SO-2026-50085","customer":"Josefina Lim","phone":"+639209062269","address":"Blk 4 Lot 33 Phase 3 Chino Roces Avenue, Makati City, Metro Manila, Philippines","city":"Makati City","window":"09:00-13:00","value":12995,"cod":false,"items":[{"name":"CCTV Kit 4-Channel with DVR","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1085","state":"DELIVERED","eta":"08:45","crew":"Efren Salazar","vehicle":"INS8146","serviceMin":7,"weightKg":5.0},{"type":"Installation","id":"ABS-I-1085","state":"DELIVERED","eta":"09:40","crew":"Efren Salazar","vehicle":"INS8146","serviceMin":90,"sameVisit":true}],"state":"DELIVERED"},{"so":"SO-2026-50104","customer":"Lorna Garcia","phone":"+639292278702","address":"Blk 18 Lot 18 Ayala Avenue, Makati City, Metro Manila, Philippines","city":"Makati City","window":"14:00-18:00","value":9995,"cod":false,"items":[{"name":"Twin Tub Washing Machine 7.5 kg","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1104","state":"OUT_FOR_DELIVERY","eta":"13:35","crew":"Virgilio Castillo","vehicle":"ALV6378","serviceMin":15,"weightKg":32.0},{"type":"Installation","id":"ABS-I-1104","state":"IN_TRANSIT","eta":"14:25","crew":"Virgilio Castillo","vehicle":"ALV6378","serviceMin":10,"sameVisit":true}],"state":"OUT_FOR_DELIVERY"},{"so":"SO-2026-60009","customer":"Fernando Sy","phone":"+639711193449","address":"No. 602 EDSA, Magallanes, Makati City, Metro Manila, Philippines","city":"Makati City","window":"12:00-16:00","value":0,"cod":false,"items":[{"name":"Installation - Side-by-Side Refrigerator 19 cu.ft","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0009","state":"DELIVERED","eta":"11:40","crew":"Efren Salazar","vehicle":"INS2341","serviceMin":25,"sameVisit":false}],"state":"DELIVERED"},{"so":"SO-2026-60040","customer":"Christopher Del Rosario","phone":"+639292548267","address":"Blk 15 Lot 7 Phase 1 Chino Roces Avenue, Makati City, Metro Manila, Philippines","city":"Makati City","window":"12:00-16:00","value":0,"cod":false,"items":[{"name":"Installation - Chest Freezer 7 cu.ft","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0040","state":"IN_TRANSIT","eta":"17:25","crew":"Nestor Aguilar","vehicle":"INS8353","serviceMin":15,"sameVisit":false}],"state":"OUT_FOR_DELIVERY"},{"so":"SO-2026-60056","customer":"Ana Bautista","phone":"+639193890991","address":"Unit 3D Chino Roces Avenue, Makati City, Metro Manila, Philippines","city":"Makati City","window":"09:00-13:00","value":0,"cod":false,"items":[{"name":"Installation - Split Type Inverter Aircon 1.0 HP","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0056","state":"DELIVERED","eta":"10:00","crew":"Joel Bernardo","vehicle":"INS3702","serviceMin":90,"sameVisit":false}],"state":"DELIVERED"}],"inbound":[{"ref":"ABS-MM-0015","sto":"STO-2026-9014","window":"08:00-17:00","lines":5,"weightKg":810.5,"volumeM3":6.08,"state":"DELIVERED","eta":"07:30","items":[{"name":"Front Load Washing Machine 8.5 kg","qty":6},{"name":"Chest Freezer 7 cu.ft","qty":3},{"name":"Window Type Aircon 1.0 HP","qty":4},{"name":"Water Dispenser Hot and Cold","qty":6},{"name":"Smartphone 6.7\" 256GB","qty":5}]}]},{"id":"ABS-STR-018","name":"Abenson Bicutan","city":"Taguig City","province":"Metro Manila","format":"HIGHSTREET","receiving":"08:00-17:00","orders":[{"so":"SO-2026-40001","customer":"Michael Uy","phone":"+639799727228","address":"No. 147 West Service Road, Paranaque City, Metro Manila, Philippines","city":"Paranaque City","window":"09:00-13:00","value":15995,"cod":false,"items":[{"name":"4-Burner Gas Range with Oven","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0001","state":"IN_TRANSIT","eta":"09:45","crew":"Nestor Aguilar","vehicle":"ALV6378","serviceMin":15,"weightKg":38.0}],"state":"IN_TRANSIT"},{"so":"SO-2026-40024","customer":"Lorna Dizon","phone":"+639586273257","address":"Unit 15B FTI Complex, Western Bicutan, Taguig City, Metro Manila, Philippines","city":"Taguig City","window":"12:00-16:00","value":32995,"cod":false,"items":[{"name":"Front Load Washing Machine 8.5 kg","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0024","state":"SCHEDULED","eta":"17:35","crew":"Virgilio Castillo","vehicle":"CVN3114","serviceMin":25,"weightKg":68.0}],"state":"SCHEDULED"},{"so":"SO-2026-40031","customer":"Danilo Del Rosario","phone":"+639854479839","address":"Unit 23A East Service Road, Bicutan, Taguig City, Metro Manila, Philippines","city":"Taguig City","window":"14:00-18:00","value":44485,"cod":false,"items":[{"name":"Water Dispenser Hot and Cold","qty":1},{"name":"Stand Fan 16\"","qty":1},{"name":"Smartphone 6.7\" 256GB","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0031","state":"SCHEDULED","eta":"12:35","crew":"Rodel Manalo","vehicle":"CVN3114","serviceMin":20,"weightKg":22.3}],"state":"SCHEDULED"},{"so":"SO-2026-40069","customer":"Cecilia Mendoza","phone":"+639312848233","address":"No. 385 West Service Road, Paranaque City, Metro Manila, Philippines","city":"Paranaque City","window":"14:00-18:00","value":42995,"cod":false,"items":[{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0069","state":"SCHEDULED","eta":"12:50","crew":"Virgilio Castillo","vehicle":"ALV6378","serviceMin":5,"weightKg":2.2}],"state":"SCHEDULED"},{"so":"SO-2026-40082","customer":"Roberto Chua","phone":"+639447200083","address":"Blk 6 Lot 34 East Service Road, Bicutan, Taguig City, Metro Manila, Philippines","city":"Taguig City","window":"12:00-16:00","value":14990,"cod":false,"items":[{"name":"Microwave Oven 25L","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0082","state":"SCHEDULED","eta":"13:05","crew":"Virgilio Castillo","vehicle":"ALV6378","serviceMin":14,"weightKg":28.0}],"state":"SCHEDULED"},{"so":"SO-2026-40083","customer":"Maria Dizon","phone":"+639432739856","address":"714-A East Service Road, Bicutan, Taguig City, Metro Manila, Philippines","city":"Taguig City","window":"13:00-17:00","value":24480,"cod":false,"items":[{"name":"Microwave Oven 25L","qty":2},{"name":"Stand Fan 16\"","qty":1},{"name":"Water Dispenser Hot and Cold","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0083","state":"DELIVERED","eta":"09:35","crew":"Arnel Dizon","vehicle":"CVN2236","serviceMin":29,"weightKg":50.0}],"state":"DELIVERED"},{"so":"SO-2026-40096","customer":"Juan Aguilar","phone":"+639451873387","address":"No. 503 East Service Road, Bicutan, Taguig City, Metro Manila, Philippines","city":"Taguig City","window":"08:00-12:00","value":92985,"cod":false,"items":[{"name":"Water Dispenser Hot and Cold","qty":1},{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0096","state":"SCHEDULED","eta":"10:50","crew":"Efren Salazar","vehicle":"INS8146","serviceMin":20,"weightKg":20.4}],"state":"SCHEDULED"},{"so":"SO-2026-40109","customer":"Grace Villanueva","phone":"+639564234033","address":"Unit 26C West Service Road, Paranaque City, Metro Manila, Philippines","city":"Paranaque City","window":"12:00-16:00","value":59480,"cod":false,"items":[{"name":"Stand Fan 16\"","qty":1},{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":1},{"name":"Water Dispenser Hot and Cold","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0109","state":"IN_TRANSIT","eta":"15:05","crew":"Jomar Pascual","vehicle":"INS8146","serviceMin":30,"weightKg":40.2}],"state":"IN_TRANSIT"},{"so":"SO-2026-50042","customer":"Ramon Aguilar","phone":"+639368080274","address":"759-A FTI Complex, Western Bicutan, Taguig City, Metro Manila, Philippines","city":"Taguig City","window":"14:00-18:00","value":44995,"cod":false,"items":[{"name":"Split Type Inverter Aircon 2.0 HP","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1042","state":"IN_TRANSIT","eta":"12:15","crew":"Joel Bernardo","vehicle":"L300-NBL2291","serviceMin":25,"weightKg":58.0},{"type":"Installation","id":"ABS-I-1042","state":"IN_TRANSIT","eta":"13:25","crew":"Joel Bernardo","vehicle":"L300-NBL2291","serviceMin":120,"sameVisit":true}],"state":"IN_TRANSIT"},{"so":"SO-2026-50065","customer":"Ana Navarro","phone":"+639303905039","address":"Unit 10D FTI Complex, Western Bicutan, Taguig City, Metro Manila, Philippines","city":"Taguig City","window":"13:00-17:00","value":32995,"cod":false,"items":[{"name":"55\" 4K Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1065","state":"SCHEDULED","eta":"13:50","crew":"Joel Bernardo","vehicle":"CVN2236","serviceMin":15,"weightKg":18.0},{"type":"Installation","id":"ABS-I-1065","state":"SCHEDULED","eta":"14:00","crew":"Joel Bernardo","vehicle":"CVN2236","serviceMin":45,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-50072","customer":"Christopher Aguilar","phone":"+639786585354","address":"899-A East Service Road, Bicutan, Taguig City, Metro Manila, Philippines","city":"Taguig City","window":"13:00-17:00","value":15995,"cod":false,"items":[{"name":"4-Burner Gas Range with Oven","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1072","state":"DELIVERED","eta":"10:15","crew":"Efren Salazar","vehicle":"CVN3114","serviceMin":15,"weightKg":38.0},{"type":"Installation","id":"ABS-I-1072","state":"DELIVERED","eta":"11:25","crew":"Efren Salazar","vehicle":"CVN3114","serviceMin":30,"sameVisit":true}],"state":"DELIVERED"},{"so":"SO-2026-50077","customer":"Eduardo Cruz","phone":"+639482203005","address":"No. 738 West Service Road, Paranaque City, Metro Manila, Philippines","city":"Paranaque City","window":"08:00-12:00","value":54995,"cod":false,"items":[{"name":"65\" 4K Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1077","state":"SCHEDULED","eta":"10:20","crew":"Marlon Reyes","vehicle":"CVN3114","serviceMin":20,"weightKg":26.0},{"type":"Installation","id":"ABS-I-1077","state":"SCHEDULED","eta":"11:00","crew":"Marlon Reyes","vehicle":"CVN3114","serviceMin":60,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-60035","customer":"Gloria Velasco","phone":"+639433660403","address":"No. 605 West Service Road, Paranaque City, Metro Manila, Philippines","city":"Paranaque City","window":"14:00-18:00","value":0,"cod":false,"items":[{"name":"Installation - Split Type Inverter Aircon 1.0 HP","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0035","state":"IN_TRANSIT","eta":"14:40","crew":"Nestor Aguilar","vehicle":"INS3056","serviceMin":90,"sameVisit":false}],"state":"IN_TRANSIT"},{"so":"SO-2026-60036","customer":"Luz Mendoza","phone":"+639696335933","address":"Blk 20 Lot 22 Phase 2 East Service Road, Bicutan, Taguig City, Metro Manila, Philippines","city":"Taguig City","window":"09:00-13:00","value":0,"cod":false,"items":[{"name":"Installation - Split Type Inverter Aircon 2.0 HP","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0036","state":"SCHEDULED","eta":"17:40","crew":"Arnel Dizon","vehicle":"INS8481","serviceMin":120,"sameVisit":false}],"state":"SCHEDULED"},{"so":"SO-2026-60049","customer":"Jose Dizon","phone":"+639694279041","address":"Blk 20 Lot 12 East Service Road, Bicutan, Taguig City, Metro Manila, Philippines","city":"Taguig City","window":"08:00-12:00","value":0,"cod":false,"items":[{"name":"Installation - Split Type Inverter Aircon 1.0 HP","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0049","state":"SCHEDULED","eta":"17:25","crew":"Joel Bernardo","vehicle":"INS7536","serviceMin":90,"sameVisit":false}],"state":"SCHEDULED"}],"inbound":[{"ref":"ABS-MM-0018","sto":"STO-2026-9017","window":"08:00-17:00","lines":5,"weightKg":1158.8,"volumeM3":9.398,"state":"DELIVERED","eta":"06:30","items":[{"name":"Split Type Inverter Aircon 1.0 HP","qty":10},{"name":"4-Burner Gas Range with Oven","qty":9},{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":9},{"name":"Front Load Washing Machine 8.5 kg","qty":4},{"name":"Window Type Aircon 1.0 HP","qty":3}]}]},{"id":"ABS-STR-019","name":"Abenson Alabang","city":"Muntinlupa City","province":"Metro Manila","format":"MALL","receiving":"06:00-10:00","orders":[{"so":"SO-2026-40053","customer":"Marites Chua","phone":"+639873012598","address":"No. 254 Alabang-Zapote Road, Alabang, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"08:00-12:00","value":4990,"cod":false,"items":[{"name":"Stand Fan 16\"","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0053","state":"OUT_FOR_DELIVERY","eta":"08:15","crew":"Rodel Manalo","vehicle":"CVN2236","serviceMin":10,"weightKg":12.0}],"state":"OUT_FOR_DELIVERY"},{"so":"SO-2026-40054","customer":"Noel Padilla","phone":"+639753858616","address":"Unit 25B National Road, Putatan, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"08:00-12:00","value":11985,"cod":false,"items":[{"name":"Water Dispenser Hot and Cold","qty":1},{"name":"Stand Fan 16\"","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0054","state":"IN_TRANSIT","eta":"09:20","crew":"Arnel Dizon","vehicle":"CVN3114","serviceMin":20,"weightKg":28.0}],"state":"IN_TRANSIT"},{"so":"SO-2026-40086","customer":"Maria Salazar","phone":"+639726621155","address":"Blk 50 Lot 39 Sucat Road, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"09:00-13:00","value":42995,"cod":false,"items":[{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0086","state":"DELIVERED","eta":"10:45","crew":"Rodel Manalo","vehicle":"ALV6378","serviceMin":5,"weightKg":2.2}],"state":"DELIVERED"},{"so":"SO-2026-40089","customer":"Carmen Cruz","phone":"+639243268444","address":"819-A Sucat Road, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"12:00-16:00","value":70980,"cod":false,"items":[{"name":"55\" 4K Smart TV","qty":2},{"name":"Stand Fan 16\"","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0089","state":"OUT_FOR_DELIVERY","eta":"09:15","crew":"Joel Bernardo","vehicle":"CVN2236","serviceMin":40,"weightKg":48.0}],"state":"OUT_FOR_DELIVERY"},{"so":"SO-2026-40117","customer":"Maria Navarro","phone":"+639535312782","address":"Unit 7A Sucat Road, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"14:00-18:00","value":106970,"cod":false,"items":[{"name":"55\" 4K Smart TV","qty":2},{"name":"Stand Fan 16\"","qty":2},{"name":"43\" Smart TV","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0117","state":"OUT_FOR_DELIVERY","eta":"13:45","crew":"Nestor Aguilar","vehicle":"INS8146","serviceMin":40,"weightKg":66.0}],"state":"OUT_FOR_DELIVERY"},{"so":"SO-2026-50036","customer":"Divina Marquez","phone":"+639987484710","address":"Blk 17 Lot 36 Phase 5 Sucat Road, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"08:00-12:00","value":8995,"cod":false,"items":[{"name":"Soundbar 2.1ch with Subwoofer","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1036","state":"DELIVERED","eta":"15:35","crew":"Virgilio Castillo","vehicle":"INS8146","serviceMin":7,"weightKg":8.0},{"type":"Installation","id":"ABS-I-1036","state":"DELIVERED","eta":"16:25","crew":"Virgilio Castillo","vehicle":"INS8146","serviceMin":15,"sameVisit":true}],"state":"DELIVERED"},{"so":"SO-2026-50039","customer":"Divina Uy","phone":"+639831125205","address":"751-A Sucat Road, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"12:00-16:00","value":15995,"cod":false,"items":[{"name":"4-Burner Gas Range with Oven","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1039","state":"DELIVERED","eta":"09:50","crew":"Nestor Aguilar","vehicle":"CVN7048","serviceMin":15,"weightKg":38.0},{"type":"Installation","id":"ABS-I-1039","state":"DELIVERED","eta":"10:25","crew":"Nestor Aguilar","vehicle":"CVN7048","serviceMin":30,"sameVisit":true}],"state":"DELIVERED"},{"so":"SO-2026-50048","customer":"Luz Bernardo","phone":"+639288607790","address":"Unit 23B Alabang-Zapote Road, Alabang, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"09:00-13:00","value":54995,"cod":false,"items":[{"name":"65\" 4K Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1048","state":"IN_TRANSIT","eta":"10:45","crew":"Arnel Dizon","vehicle":"CVN2236","serviceMin":20,"weightKg":26.0},{"type":"Installation","id":"ABS-I-1048","state":"IN_TRANSIT","eta":"11:40","crew":"Arnel Dizon","vehicle":"CVN2236","serviceMin":60,"sameVisit":true}],"state":"IN_TRANSIT"},{"so":"SO-2026-50054","customer":"Eduardo Fernandez","phone":"+639748382220","address":"Blk 53 Lot 29 Phase 4 National Road, Putatan, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"14:00-18:00","value":44995,"cod":false,"items":[{"name":"Split Type Inverter Aircon 2.0 HP","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1054","state":"IN_TRANSIT","eta":"16:05","crew":"Marlon Reyes","vehicle":"CVN7048","serviceMin":25,"weightKg":58.0},{"type":"Installation","id":"ABS-I-1054","state":"IN_TRANSIT","eta":"17:00","crew":"Marlon Reyes","vehicle":"CVN7048","serviceMin":120,"sameVisit":true}],"state":"IN_TRANSIT"},{"so":"SO-2026-50082","customer":"Danilo Ang","phone":"+639907542570","address":"No. 133 Sucat Road, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"12:00-16:00","value":44995,"cod":false,"items":[{"name":"Split Type Inverter Aircon 2.0 HP","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1082","state":"SCHEDULED","eta":"12:45","crew":"Nestor Aguilar","vehicle":"CVN2236","serviceMin":25,"weightKg":58.0},{"type":"Installation","id":"ABS-I-1082","state":"SCHEDULED","eta":"13:25","crew":"Nestor Aguilar","vehicle":"CVN2236","serviceMin":120,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-50090","customer":"Lorna Marquez","phone":"+639432950676","address":"Blk 32 Lot 15 Sucat Road, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"12:00-16:00","value":26995,"cod":false,"items":[{"name":"Split Type Inverter Aircon 1.0 HP","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1090","state":"SCHEDULED","eta":"16:45","crew":"Nestor Aguilar","vehicle":"CVN7048","serviceMin":20,"weightKg":42.0},{"type":"Installation","id":"ABS-I-1090","state":"SCHEDULED","eta":"17:00","crew":"Nestor Aguilar","vehicle":"CVN7048","serviceMin":90,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-50091","customer":"Eduardo Velasco","phone":"+639568643344","address":"No. 941 Alabang-Zapote Road, Alabang, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"08:00-12:00","value":32995,"cod":false,"items":[{"name":"55\" 4K Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1091","state":"OUT_FOR_DELIVERY","eta":"11:15","crew":"Joel Bernardo","vehicle":"CVN7048","serviceMin":15,"weightKg":18.0},{"type":"Installation","id":"ABS-I-1091","state":"IN_TRANSIT","eta":"12:00","crew":"Joel Bernardo","vehicle":"CVN7048","serviceMin":45,"sameVisit":true}],"state":"OUT_FOR_DELIVERY"},{"so":"SO-2026-50095","customer":"Alfredo Cruz","phone":"+639209161591","address":"Blk 34 Lot 8 Phase 3 National Road, Putatan, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"09:00-13:00","value":26995,"cod":false,"items":[{"name":"Split Type Inverter Aircon 1.0 HP","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1095","state":"DELIVERED","eta":"15:20","crew":"Arnel Dizon","vehicle":"CVN3114","serviceMin":20,"weightKg":42.0},{"type":"Installation","id":"ABS-I-1095","state":"DELIVERED","eta":"16:25","crew":"Arnel Dizon","vehicle":"CVN3114","serviceMin":90,"sameVisit":true}],"state":"DELIVERED"},{"so":"SO-2026-60018","customer":"Juan Castillo","phone":"+639602654367","address":"Unit 24C National Road, Putatan, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"12:00-16:00","value":0,"cod":false,"items":[{"name":"Installation - Twin Tub Washing Machine 7.5 kg","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0018","state":"IN_TRANSIT","eta":"12:40","crew":"Nestor Aguilar","vehicle":"INS8327","serviceMin":10,"sameVisit":false}],"state":"IN_TRANSIT"},{"so":"SO-2026-60023","customer":"Noel Fernandez","phone":"+639647780241","address":"736-A Alabang-Zapote Road, Alabang, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"09:00-13:00","value":0,"cod":false,"items":[{"name":"Installation - 43\" Smart TV","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0023","state":"SCHEDULED","eta":"14:25","crew":"Rodel Manalo","vehicle":"INS4612","serviceMin":30,"sameVisit":false}],"state":"SCHEDULED"},{"so":"SO-2026-60026","customer":"Grace Ocampo","phone":"+639515374239","address":"346-A Sucat Road, Muntinlupa City, Metro Manila, Philippines","city":"Muntinlupa City","window":"14:00-18:00","value":0,"cod":false,"items":[{"name":"Installation - Soundbar 2.1ch with Subwoofer","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0026","state":"DELIVERED","eta":"16:00","crew":"Nestor Aguilar","vehicle":"INS4348","serviceMin":15,"sameVisit":false}],"state":"DELIVERED"}],"inbound":[{"ref":"ABS-MM-0019","sto":"STO-2026-9018","window":"06:00-10:00","lines":5,"weightKg":869.8,"volumeM3":7.388,"state":"DELIVERED","eta":"06:30","items":[{"name":"Soundbar 2.1ch with Subwoofer","qty":9},{"name":"4-Burner Gas Range with Oven","qty":7},{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":9},{"name":"Split Type Inverter Aircon 2.0 HP","qty":4},{"name":"Window Type Aircon 1.0 HP","qty":8}]}]},{"id":"ABS-STR-023","name":"Abenson Pasay","city":"Pasay City","province":"Metro Manila","format":"MALL","receiving":"06:00-10:00","orders":[{"so":"SO-2026-40002","customer":"Ana Villanueva","phone":"+639833070506","address":"741-A MIA Road, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"12:00-16:00","value":56480,"cod":false,"items":[{"name":"Microwave Oven 25L","qty":1},{"name":"Water Dispenser Hot and Cold","qty":2},{"name":"Smartphone 6.7\" 256GB","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0002","state":"SCHEDULED","eta":"13:50","crew":"Rodel Manalo","vehicle":"CVN7048","serviceMin":32,"weightKg":46.3}],"state":"SCHEDULED"},{"so":"SO-2026-40044","customer":"Ramon Velasco","phone":"+639619515917","address":"Unit 27A EDSA Extension, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"14:00-18:00","value":9995,"cod":false,"items":[{"name":"Twin Tub Washing Machine 7.5 kg","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0044","state":"DELIVERED","eta":"14:50","crew":"Efren Salazar","vehicle":"INS8146","serviceMin":15,"weightKg":32.0}],"state":"DELIVERED"},{"so":"SO-2026-40111","customer":"Noel Aquino","phone":"+639334273996","address":"Unit 12C MIA Road, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"12:00-16:00","value":39985,"cod":false,"items":[{"name":"Smartphone 6.7\" 256GB","qty":1},{"name":"Stand Fan 16\"","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0111","state":"SCHEDULED","eta":"14:50","crew":"Nestor Aguilar","vehicle":"CVN3114","serviceMin":15,"weightKg":12.3}],"state":"SCHEDULED"},{"so":"SO-2026-50015","customer":"Lourdes Castillo","phone":"+639132001532","address":"Blk 49 Lot 11 Phase 4 NAIA Road, Paranaque City, Metro Manila, Philippines","city":"Paranaque City","window":"08:00-12:00","value":32995,"cod":false,"items":[{"name":"55\" 4K Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1015","state":"SCHEDULED","eta":"14:35","crew":"Joel Bernardo","vehicle":"CVN7048","serviceMin":15,"weightKg":18.0},{"type":"Installation","id":"ABS-I-1015","state":"SCHEDULED","eta":"15:00","crew":"Joel Bernardo","vehicle":"CVN7048","serviceMin":45,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-50024","customer":"Fernando Salazar","phone":"+639882980241","address":"No. 42 Sen. Gil Puyat Avenue, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"12:00-16:00","value":17995,"cod":false,"items":[{"name":"43\" Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1024","state":"SCHEDULED","eta":"10:15","crew":"Arnel Dizon","vehicle":"CVN2236","serviceMin":10,"weightKg":9.0},{"type":"Installation","id":"ABS-I-1024","state":"SCHEDULED","eta":"11:40","crew":"Arnel Dizon","vehicle":"CVN2236","serviceMin":30,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-50035","customer":"Noel Salazar","phone":"+639176999372","address":"Unit 28A MIA Road, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"08:00-12:00","value":9995,"cod":false,"items":[{"name":"Twin Tub Washing Machine 7.5 kg","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1035","state":"SCHEDULED","eta":"10:45","crew":"Virgilio Castillo","vehicle":"CVN7048","serviceMin":15,"weightKg":32.0},{"type":"Installation","id":"ABS-I-1035","state":"SCHEDULED","eta":"11:25","crew":"Virgilio Castillo","vehicle":"CVN7048","serviceMin":10,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-50043","customer":"Michael Cabrera","phone":"+639625537130","address":"No. 245 MIA Road, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"14:00-18:00","value":54995,"cod":false,"items":[{"name":"65\" 4K Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1043","state":"DELIVERED","eta":"16:15","crew":"Arnel Dizon","vehicle":"CVN3114","serviceMin":20,"weightKg":26.0},{"type":"Installation","id":"ABS-I-1043","state":"DELIVERED","eta":"17:40","crew":"Arnel Dizon","vehicle":"CVN3114","serviceMin":60,"sameVisit":true}],"state":"DELIVERED"},{"so":"SO-2026-50044","customer":"Lourdes Villanueva","phone":"+639447379848","address":"Blk 59 Lot 24 Phase 4 NAIA Road, Paranaque City, Metro Manila, Philippines","city":"Paranaque City","window":"08:00-12:00","value":17995,"cod":false,"items":[{"name":"Window Type Aircon 1.0 HP","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1044","state":"SCHEDULED","eta":"16:50","crew":"Jomar Pascual","vehicle":"INS8146","serviceMin":15,"weightKg":35.0},{"type":"Installation","id":"ABS-I-1044","state":"SCHEDULED","eta":"17:00","crew":"Jomar Pascual","vehicle":"INS8146","serviceMin":45,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-50062","customer":"Christopher Mendoza","phone":"+639553156398","address":"No. 529 MIA Road, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"13:00-17:00","value":26995,"cod":false,"items":[{"name":"Split Type Inverter Aircon 1.0 HP","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1062","state":"SCHEDULED","eta":"11:05","crew":"Marlon Reyes","vehicle":"CVN2236","serviceMin":20,"weightKg":42.0},{"type":"Installation","id":"ABS-I-1062","state":"SCHEDULED","eta":"12:25","crew":"Marlon Reyes","vehicle":"CVN2236","serviceMin":90,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-50100","customer":"Jose Domingo","phone":"+639902844793","address":"No. 540 MIA Road, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"12:00-16:00","value":32995,"cod":false,"items":[{"name":"55\" 4K Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1100","state":"IN_TRANSIT","eta":"17:20","crew":"Marlon Reyes","vehicle":"L300-NBL2291","serviceMin":15,"weightKg":18.0},{"type":"Installation","id":"ABS-I-1100","state":"IN_TRANSIT","eta":"18:25","crew":"Marlon Reyes","vehicle":"L300-NBL2291","serviceMin":45,"sameVisit":true}],"state":"IN_TRANSIT"},{"so":"SO-2026-60007","customer":"Antonio Cabrera","phone":"+639746167626","address":"Unit 4C MIA Road, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"08:00-12:00","value":0,"cod":false,"items":[{"name":"Installation - Split Type Inverter Aircon 1.0 HP","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0007","state":"SCHEDULED","eta":"09:40","crew":"Nestor Aguilar","vehicle":"INS8506","serviceMin":90,"sameVisit":false}],"state":"SCHEDULED"},{"so":"SO-2026-60010","customer":"Roberto Ocampo","phone":"+639724962707","address":"Blk 58 Lot 10 Phase 6 EDSA Extension, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"14:00-18:00","value":0,"cod":false,"items":[{"name":"Installation - Twin Tub Washing Machine 7.5 kg","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0010","state":"SCHEDULED","eta":"17:25","crew":"Jomar Pascual","vehicle":"INS9713","serviceMin":10,"sameVisit":false}],"state":"SCHEDULED"},{"so":"SO-2026-60028","customer":"Roberto Rivera","phone":"+639727477423","address":"Blk 55 Lot 35 EDSA Extension, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"08:00-12:00","value":0,"cod":false,"items":[{"name":"Installation - Soundbar 2.1ch with Subwoofer","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0028","state":"DELIVERED","eta":"17:00","crew":"Virgilio Castillo","vehicle":"INS4000","serviceMin":15,"sameVisit":false}],"state":"DELIVERED"},{"so":"SO-2026-60031","customer":"Jose Torres","phone":"+639205864069","address":"Unit 2D EDSA Extension, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"13:00-17:00","value":0,"cod":false,"items":[{"name":"Installation - Side-by-Side Refrigerator 19 cu.ft","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0031","state":"IN_TRANSIT","eta":"11:00","crew":"Jomar Pascual","vehicle":"INS8757","serviceMin":25,"sameVisit":false}],"state":"OUT_FOR_DELIVERY"},{"so":"SO-2026-60057","customer":"Roberto Reyes","phone":"+639723079652","address":"Unit 6C EDSA Extension, Pasay City, Metro Manila, Philippines","city":"Pasay City","window":"13:00-17:00","value":0,"cod":false,"items":[{"name":"Installation - 43\" Smart TV","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0057","state":"IN_TRANSIT","eta":"10:40","crew":"Arnel Dizon","vehicle":"INS6340","serviceMin":30,"sameVisit":false}],"state":"OUT_FOR_DELIVERY"}],"inbound":[{"ref":"ABS-MM-0023","sto":"STO-2026-9022","window":"06:00-10:00","lines":4,"weightKg":678.2,"volumeM3":6.712,"state":"SCHEDULED","eta":"09:10","items":[{"name":"Split Type Inverter Aircon 1.0 HP","qty":9},{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":6},{"name":"43\" Smart TV","qty":7},{"name":"Twin Tub Washing Machine 7.5 kg","qty":7}]}]},{"id":"ABS-STR-029","name":"Abenson Valenzuela","city":"Valenzuela City","province":"Metro Manila","format":"HIGHSTREET","receiving":"08:00-17:00","orders":[{"so":"SO-2026-40005","customer":"Luz Salazar","phone":"+639106052370","address":"Blk 36 Lot 18 MacArthur Highway, Karuhatan, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"13:00-17:00","value":90380,"cod":false,"items":[{"name":"Stand Fan 16\"","qty":1},{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":2},{"name":"Rice Cooker 1.8L","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0005","state":"SCHEDULED","eta":"08:15","crew":"Efren Salazar","vehicle":"ALV6378","serviceMin":20,"weightKg":13.4}],"state":"SCHEDULED"},{"so":"SO-2026-40014","customer":"Gloria Chua","phone":"+639839816930","address":"934-A MacArthur Highway, Karuhatan, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"13:00-17:00","value":24990,"cod":false,"items":[{"name":"43\" Smart TV","qty":1},{"name":"Water Dispenser Hot and Cold","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0014","state":"DELIVERED","eta":"09:45","crew":"Virgilio Castillo","vehicle":"L300-NBL2291","serviceMin":20,"weightKg":25.0}],"state":"DELIVERED"},{"so":"SO-2026-40021","customer":"Grace Padilla","phone":"+639623586926","address":"862-A MacArthur Highway, Karuhatan, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"13:00-17:00","value":1895,"cod":false,"items":[{"name":"Rice Cooker 1.8L","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0021","state":"DELIVERED","eta":"09:35","crew":"Nestor Aguilar","vehicle":"L300-NBL2291","serviceMin":5,"weightKg":3.0}],"state":"DELIVERED"},{"so":"SO-2026-40028","customer":"Pedro Del Rosario","phone":"+639707092907","address":"Blk 50 Lot 6 Phase 4 MacArthur Highway, Karuhatan, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"14:00-18:00","value":77990,"cod":false,"items":[{"name":"Smartphone 6.7\" 256GB","qty":1},{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0028","state":"EXCEPTION","eta":"17:45","crew":"Efren Salazar","vehicle":"CVN7048","serviceMin":10,"weightKg":2.5}],"state":"EXCEPTION"},{"so":"SO-2026-40042","customer":"Gloria Garcia","phone":"+639919832830","address":"No. 332 General T. de Leon, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"12:00-16:00","value":7495,"cod":false,"items":[{"name":"Microwave Oven 25L","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0042","state":"DELIVERED","eta":"16:45","crew":"Virgilio Castillo","vehicle":"L300-NBL2291","serviceMin":7,"weightKg":14.0}],"state":"DELIVERED"},{"so":"SO-2026-40050","customer":"Manuel Villanueva","phone":"+639726684032","address":"Unit 9D Paso de Blas Road, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"13:00-17:00","value":53775,"cod":false,"items":[{"name":"Smartphone 6.7\" 256GB","qty":1},{"name":"Microwave Oven 25L","qty":2},{"name":"Rice Cooker 1.8L","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0050","state":"EXCEPTION","eta":"16:20","crew":"Efren Salazar","vehicle":"INS8146","serviceMin":29,"weightKg":34.3}],"state":"EXCEPTION"},{"so":"SO-2026-40055","customer":"Jasmine Yu","phone":"+639813804414","address":"855-A Paso de Blas Road, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"13:00-17:00","value":44890,"cod":false,"items":[{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":1},{"name":"Rice Cooker 1.8L","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0055","state":"DELIVERED","eta":"09:35","crew":"Virgilio Castillo","vehicle":"ALV6378","serviceMin":10,"weightKg":5.2}],"state":"DELIVERED"},{"so":"SO-2026-40059","customer":"Carmen Fernandez","phone":"+639288460394","address":"Blk 41 Lot 28 Paso de Blas Road, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"08:00-12:00","value":100985,"cod":false,"items":[{"name":"Smartphone 6.7\" 256GB","qty":1},{"name":"Front Load Washing Machine 8.5 kg","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0059","state":"DELIVERED","eta":"11:35","crew":"Rodel Manalo","vehicle":"CVN2236","serviceMin":40,"weightKg":136.3}],"state":"DELIVERED"},{"so":"SO-2026-40066","customer":"Carmen Alvarez","phone":"+639404840024","address":"733-A General T. de Leon, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"12:00-16:00","value":7495,"cod":false,"items":[{"name":"Microwave Oven 25L","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0066","state":"SCHEDULED","eta":"09:15","crew":"Nestor Aguilar","vehicle":"CVN2236","serviceMin":7,"weightKg":14.0}],"state":"SCHEDULED"},{"so":"SO-2026-40092","customer":"Teresa Pascual","phone":"+639494657295","address":"728-A Paso de Blas Road, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"09:00-13:00","value":53975,"cod":false,"items":[{"name":"Smartphone 6.7\" 256GB","qty":1},{"name":"Water Dispenser Hot and Cold","qty":2},{"name":"Stand Fan 16\"","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0092","state":"DELIVERED","eta":"10:35","crew":"Efren Salazar","vehicle":"CVN7048","serviceMin":35,"weightKg":44.3}],"state":"DELIVERED"},{"so":"SO-2026-40110","customer":"Gloria Yu","phone":"+639723815503","address":"Blk 54 Lot 22 Phase 2 General T. de Leon, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"14:00-18:00","value":13990,"cod":false,"items":[{"name":"Water Dispenser Hot and Cold","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0110","state":"EXCEPTION","eta":"14:35","crew":"Jomar Pascual","vehicle":"CVN7048","serviceMin":20,"weightKg":32.0}],"state":"EXCEPTION"},{"so":"SO-2026-40131","customer":"Juan Flores","phone":"+639945015824","address":"Unit 12C MacArthur Highway, Karuhatan, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"13:00-17:00","value":104970,"cod":false,"items":[{"name":"Stand Fan 16\"","qty":2},{"name":"Laptop 15.6\" 16GB 512GB SSD","qty":2},{"name":"Water Dispenser Hot and Cold","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0131","state":"SCHEDULED","eta":"10:50","crew":"Joel Bernardo","vehicle":"L300-NBL2291","serviceMin":40,"weightKg":48.4}],"state":"SCHEDULED"},{"so":"SO-2026-40136","customer":"Rolando Mendoza","phone":"+639817984656","address":"Unit 2A Paso de Blas Road, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"14:00-18:00","value":34995,"cod":false,"items":[{"name":"Smartphone 6.7\" 256GB","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0136","state":"IN_TRANSIT","eta":"14:15","crew":"Nestor Aguilar","vehicle":"ALV6378","serviceMin":5,"weightKg":0.3}],"state":"IN_TRANSIT"},{"so":"SO-2026-50053","customer":"Mark Reyes","phone":"+639328335019","address":"Unit 23C General T. de Leon, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"08:00-12:00","value":12995,"cod":false,"items":[{"name":"CCTV Kit 4-Channel with DVR","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1053","state":"DELIVERED","eta":"13:05","crew":"Nestor Aguilar","vehicle":"L300-NBL2291","serviceMin":7,"weightKg":5.0},{"type":"Installation","id":"ABS-I-1053","state":"DELIVERED","eta":"14:25","crew":"Nestor Aguilar","vehicle":"L300-NBL2291","serviceMin":90,"sameVisit":true}],"state":"DELIVERED"},{"so":"SO-2026-50064","customer":"Rolando Cabrera","phone":"+639284156393","address":"No. 271 Paso de Blas Road, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"08:00-12:00","value":32995,"cod":false,"items":[{"name":"Front Load Washing Machine 8.5 kg","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1064","state":"IN_TRANSIT","eta":"08:35","crew":"Nestor Aguilar","vehicle":"L300-NBL2291","serviceMin":25,"weightKg":68.0},{"type":"Installation","id":"ABS-I-1064","state":"IN_TRANSIT","eta":"09:40","crew":"Nestor Aguilar","vehicle":"L300-NBL2291","serviceMin":30,"sameVisit":true}],"state":"IN_TRANSIT"},{"so":"SO-2026-50096","customer":"Marites Lim","phone":"+639342663012","address":"Unit 2A General T. de Leon, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"14:00-18:00","value":54995,"cod":false,"items":[{"name":"65\" 4K Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1096","state":"DELIVERED","eta":"09:05","crew":"Efren Salazar","vehicle":"CVN3114","serviceMin":20,"weightKg":26.0},{"type":"Installation","id":"ABS-I-1096","state":"DELIVERED","eta":"10:00","crew":"Efren Salazar","vehicle":"CVN3114","serviceMin":60,"sameVisit":true}],"state":"DELIVERED"},{"so":"SO-2026-50101","customer":"Jerome Domingo","phone":"+639342674434","address":"Unit 22A General T. de Leon, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"14:00-18:00","value":9995,"cod":false,"items":[{"name":"Twin Tub Washing Machine 7.5 kg","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1101","state":"DELIVERED","eta":"08:15","crew":"Marlon Reyes","vehicle":"CVN2236","serviceMin":15,"weightKg":32.0},{"type":"Installation","id":"ABS-I-1101","state":"DELIVERED","eta":"09:25","crew":"Marlon Reyes","vehicle":"CVN2236","serviceMin":10,"sameVisit":true}],"state":"DELIVERED"},{"so":"SO-2026-60004","customer":"Ramon Sy","phone":"+639738407048","address":"Blk 26 Lot 23 Phase 2 MacArthur Highway, Karuhatan, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"14:00-18:00","value":0,"cod":false,"items":[{"name":"Installation - Front Load Washing Machine 8.5 kg","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0004","state":"SCHEDULED","eta":"13:25","crew":"Jomar Pascual","vehicle":"INS9791","serviceMin":30,"sameVisit":false}],"state":"SCHEDULED"},{"so":"SO-2026-60054","customer":"Lourdes Rivera","phone":"+639241317248","address":"No. 413 Paso de Blas Road, Valenzuela City, Metro Manila, Philippines","city":"Valenzuela City","window":"08:00-12:00","value":0,"cod":false,"items":[{"name":"Installation - 55\" 4K Smart TV","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0054","state":"SCHEDULED","eta":"18:25","crew":"Nestor Aguilar","vehicle":"INS2465","serviceMin":45,"sameVisit":false}],"state":"SCHEDULED"}],"inbound":[{"ref":"ABS-MM-0029","sto":"STO-2026-9028","window":"08:00-17:00","lines":4,"weightKg":987.0,"volumeM3":7.71,"state":"DELIVERED","eta":"06:45","items":[{"name":"Front Load Washing Machine 8.5 kg","qty":6},{"name":"Split Type Inverter Aircon 1.0 HP","qty":3},{"name":"Twin Tub Washing Machine 7.5 kg","qty":9},{"name":"Chest Freezer 7 cu.ft","qty":3}]}]},{"id":"ABS-STR-030","name":"Abenson Malabon","city":"Malabon City","province":"Metro Manila","format":"HIGHSTREET","receiving":"08:00-17:00","orders":[{"so":"SO-2026-40026","customer":"Lorna Mendoza","phone":"+639293399487","address":"Unit 4D C-4 Road, Navotas City, Metro Manila, Philippines","city":"Navotas City","window":"08:00-12:00","value":160975,"cod":false,"items":[{"name":"Front Load Washing Machine 8.5 kg","qty":2},{"name":"Side-by-Side Refrigerator 19 cu.ft","qty":1},{"name":"Twin Tub Washing Machine 7.5 kg","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0026","state":"DELIVERED","eta":"09:20","crew":"Arnel Dizon","vehicle":"CVN7048","serviceMin":40,"weightKg":320.0}],"state":"DELIVERED"},{"so":"SO-2026-40030","customer":"Christopher Bautista","phone":"+639622639838","address":"Blk 46 Lot 17 C-4 Road, Navotas City, Metro Manila, Philippines","city":"Navotas City","window":"08:00-12:00","value":14990,"cod":false,"items":[{"name":"Microwave Oven 25L","qty":2}],"tasks":[{"type":"Delivery","id":"ABS-D-0030","state":"DELIVERED","eta":"12:05","crew":"Efren Salazar","vehicle":"CVN3114","serviceMin":14,"weightKg":28.0}],"state":"DELIVERED"},{"so":"SO-2026-40125","customer":"Juan Lim","phone":"+639557944230","address":"Blk 51 Lot 7 Governor Pascual Avenue, Malabon City, Metro Manila, Philippines","city":"Malabon City","window":"12:00-16:00","value":55985,"cod":false,"items":[{"name":"Chest Freezer 7 cu.ft","qty":2},{"name":"43\" Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-0125","state":"DELIVERED","eta":"09:35","crew":"Arnel Dizon","vehicle":"ALV6378","serviceMin":40,"weightKg":119.0}],"state":"DELIVERED"},{"so":"SO-2026-50001","customer":"Alfredo Manalo","phone":"+639678934627","address":"Unit 3B C-4 Road, Navotas City, Metro Manila, Philippines","city":"Navotas City","window":"09:00-13:00","value":9995,"cod":false,"items":[{"name":"Twin Tub Washing Machine 7.5 kg","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1001","state":"EXCEPTION","eta":"14:20","crew":"Jomar Pascual","vehicle":"CVN3114","serviceMin":15,"weightKg":32.0},{"type":"Installation","id":"ABS-I-1001","state":"SCHEDULED","eta":"15:40","crew":"Jomar Pascual","vehicle":"CVN3114","serviceMin":10,"sameVisit":true}],"state":"EXCEPTION"},{"so":"SO-2026-50014","customer":"Mark Del Rosario","phone":"+639629849879","address":"Unit 27A Governor Pascual Avenue, Malabon City, Metro Manila, Philippines","city":"Malabon City","window":"14:00-18:00","value":17995,"cod":false,"items":[{"name":"Window Type Aircon 1.0 HP","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1014","state":"SCHEDULED","eta":"09:15","crew":"Marlon Reyes","vehicle":"CVN3114","serviceMin":15,"weightKg":35.0},{"type":"Installation","id":"ABS-I-1014","state":"SCHEDULED","eta":"10:00","crew":"Marlon Reyes","vehicle":"CVN3114","serviceMin":45,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-50060","customer":"Michael Mendoza","phone":"+639304645685","address":"Blk 4 Lot 26 Phase 2 Governor Pascual Avenue, Malabon City, Metro Manila, Philippines","city":"Malabon City","window":"12:00-16:00","value":12995,"cod":false,"items":[{"name":"CCTV Kit 4-Channel with DVR","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1060","state":"DELIVERED","eta":"12:50","crew":"Marlon Reyes","vehicle":"L300-NBL2291","serviceMin":7,"weightKg":5.0},{"type":"Installation","id":"ABS-I-1060","state":"DELIVERED","eta":"13:00","crew":"Marlon Reyes","vehicle":"L300-NBL2291","serviceMin":90,"sameVisit":true}],"state":"DELIVERED"},{"so":"SO-2026-50078","customer":"Eduardo Del Rosario","phone":"+639239684690","address":"No. 970 C-4 Road, Navotas City, Metro Manila, Philippines","city":"Navotas City","window":"09:00-13:00","value":44995,"cod":false,"items":[{"name":"Split Type Inverter Aircon 2.0 HP","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1078","state":"DELIVERED","eta":"16:50","crew":"Jomar Pascual","vehicle":"ALV6378","serviceMin":25,"weightKg":58.0},{"type":"Installation","id":"ABS-I-1078","state":"DELIVERED","eta":"17:25","crew":"Jomar Pascual","vehicle":"ALV6378","serviceMin":120,"sameVisit":true}],"state":"DELIVERED"},{"so":"SO-2026-50081","customer":"Antonio Cruz","phone":"+639687230351","address":"No. 685 C-4 Road, Navotas City, Metro Manila, Philippines","city":"Navotas City","window":"09:00-13:00","value":44995,"cod":false,"items":[{"name":"Split Type Inverter Aircon 2.0 HP","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1081","state":"SCHEDULED","eta":"12:05","crew":"Arnel Dizon","vehicle":"CVN3114","serviceMin":25,"weightKg":58.0},{"type":"Installation","id":"ABS-I-1081","state":"SCHEDULED","eta":"13:40","crew":"Arnel Dizon","vehicle":"CVN3114","serviceMin":120,"sameVisit":true}],"state":"SCHEDULED"},{"so":"SO-2026-50110","customer":"Grace Flores","phone":"+639824338605","address":"Blk 36 Lot 8 Phase 2 Governor Pascual Avenue, Malabon City, Metro Manila, Philippines","city":"Malabon City","window":"09:00-13:00","value":17995,"cod":false,"items":[{"name":"43\" Smart TV","qty":1}],"tasks":[{"type":"Delivery","id":"ABS-D-1110","state":"IN_TRANSIT","eta":"11:45","crew":"Virgilio Castillo","vehicle":"CVN2236","serviceMin":10,"weightKg":9.0},{"type":"Installation","id":"ABS-I-1110","state":"IN_TRANSIT","eta":"12:25","crew":"Virgilio Castillo","vehicle":"CVN2236","serviceMin":30,"sameVisit":true}],"state":"IN_TRANSIT"},{"so":"SO-2026-60008","customer":"Carmen Fernandez","phone":"+639448857120","address":"Unit 15B C-4 Road, Navotas City, Metro Manila, Philippines","city":"Navotas City","window":"08:00-12:00","value":0,"cod":false,"items":[{"name":"Installation - Window Type Aircon 1.0 HP","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0008","state":"DELIVERED","eta":"15:40","crew":"Virgilio Castillo","vehicle":"INS9944","serviceMin":45,"sameVisit":false}],"state":"DELIVERED"},{"so":"SO-2026-60022","customer":"Arnel Uy","phone":"+639163375211","address":"980-A Governor Pascual Avenue, Malabon City, Metro Manila, Philippines","city":"Malabon City","window":"08:00-12:00","value":0,"cod":false,"items":[{"name":"Installation - Side-by-Side Refrigerator 19 cu.ft","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0022","state":"SCHEDULED","eta":"15:40","crew":"Marlon Reyes","vehicle":"INS4525","serviceMin":25,"sameVisit":false}],"state":"SCHEDULED"},{"so":"SO-2026-60027","customer":"Christopher Cruz","phone":"+639635561729","address":"397-A Governor Pascual Avenue, Malabon City, Metro Manila, Philippines","city":"Malabon City","window":"13:00-17:00","value":0,"cod":false,"items":[{"name":"Installation - 2-Door Inverter Refrigerator 9.4 cu.ft","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0027","state":"SCHEDULED","eta":"14:00","crew":"Jomar Pascual","vehicle":"INS7630","serviceMin":20,"sameVisit":false}],"state":"EXCEPTION"},{"so":"SO-2026-60045","customer":"Manuel Castillo","phone":"+639387646974","address":"Blk 53 Lot 8 C-4 Road, Navotas City, Metro Manila, Philippines","city":"Navotas City","window":"08:00-12:00","value":0,"cod":false,"items":[{"name":"Installation - 55\" 4K Smart TV","qty":1}],"tasks":[{"type":"Installation","id":"ABS-INS-0045","state":"SCHEDULED","eta":"09:00","crew":"Arnel Dizon","vehicle":"INS2158","serviceMin":45,"sameVisit":false}],"state":"EXCEPTION"}],"inbound":[{"ref":"ABS-MM-0030","sto":"STO-2026-9029","window":"08:00-17:00","lines":6,"weightKg":617.0,"volumeM3":5.91,"state":"SCHEDULED","eta":"08:30","items":[{"name":"CCTV Kit 4-Channel with DVR","qty":10},{"name":"Rice Cooker 1.8L","qty":5},{"name":"43\" Smart TV","qty":3},{"name":"Soundbar 2.1ch with Subwoofer","qty":8},{"name":"4-Burner Gas Range with Oven","qty":2},{"name":"Chest Freezer 7 cu.ft","qty":7}]}]}]};
+const LABEL = {DELIVERED:"Delivered", IN_TRANSIT:"In transit", OUT_FOR_DELIVERY:"Out for delivery",
+               SCHEDULED:"Scheduled", EXCEPTION:"Needs attention"};
+const PIP = {DELIVERED:"green", IN_TRANSIT:"lblue", OUT_FOR_DELIVERY:"orange",
+             SCHEDULED:"g300", EXCEPTION:"red"};
+const ORDER = ["EXCEPTION","OUT_FOR_DELIVERY","IN_TRANSIT","SCHEDULED","DELIVERED"];
+const peso = n => "₱" + n.toLocaleString("en-PH");
+const el = (t,c) => { const n=document.createElement(t); if(c) n.className=c; return n; };
+let state = { branch: DATA.branches[0].id, filter: null, q: "" };
+
+function badge(s){
+  const b = el("span","badge s-"+s);
+  b.innerHTML = '<span class="pip"></span>' + LABEL[s];
+  return b;
+}
+function branch(){ return DATA.branches.find(b=>b.id===state.branch); }
+
+function visible(){
+  const b = branch(), q = state.q.trim().toLowerCase();
+  return b.orders.filter(o=>{
+    if(state.filter && o.state !== state.filter) return false;
+    if(!q) return true;
+    return (o.so+" "+o.customer+" "+o.phone+" "+o.address).toLowerCase().includes(q);
+  });
+}
+
+function renderRail(){
+  const b = branch(), rail = document.getElementById("rail");
+  rail.textContent = "";
+  const counts = {};
+  b.orders.forEach(o => counts[o.state] = (counts[o.state]||0)+1);
+  const all = el("button","chip");
+  all.type="button"; all.setAttribute("aria-pressed", String(state.filter===null));
+  all.innerHTML = 'All orders <span class="n">'+b.orders.length+'</span>';
+  all.onclick = () => { state.filter = null; render(); };
+  rail.appendChild(all);
+  ORDER.forEach(s=>{
+    if(!counts[s]) return;
+    const c = el("button","chip");
+    c.type="button"; c.setAttribute("aria-pressed", String(state.filter===s));
+    c.innerHTML = '<span class="pip" style="background:var(--'+PIP[s]+')"></span>'+
+                  LABEL[s]+' <span class="n">'+counts[s]+'</span>';
+    c.onclick = () => { state.filter = (state.filter===s? null : s); render(); };
+    rail.appendChild(c);
+  });
+}
+
+function renderRows(){
+  const host = document.getElementById("rows");
+  host.textContent = "";
+  const list = visible();
+  document.getElementById("ocount").textContent =
+    list.length + (list.length === branch().orders.length ? "" : " of " + branch().orders.length);
+  if(!list.length){
+    const e = el("div","empty"); e.textContent = "No orders match that search."; host.appendChild(e); return;
+  }
+  list.forEach((o,i)=>{
+    const row = el("div","row"); row.dataset.open = "false";
+    const head = el("button","row-head");
+    head.type = "button"; head.setAttribute("aria-expanded","false");
+
+    const car = el("span","caret"); car.textContent = "▶";
+    const who = el("div");
+    who.innerHTML = '<div class="so mono">'+o.so+'</div><div class="who">'+o.customer+' · '+o.city+'</div>';
+    const items = el("div","h-items");
+    items.textContent = o.items.map(x=>x.qty+"× "+x.name).join(", ");
+    const win = el("div","h-window mono"); win.textContent = o.window;
+    const val = el("div","h-val num");
+    val.innerHTML = peso(o.value) + (o.cod ? '<span class="cod">COLLECT</span>' : '');
+
+    head.append(car, who, items, win, val, badge(o.state));
+
+    const det = el("div","detail"); det.hidden = true;
+    const dg = el("div","dgrid");
+    [["Deliver to", o.address],["Mobile", o.phone],["Promised window", o.window],
+     ["Order value", peso(o.value) + (o.cod ? " · collect on delivery" : "")]]
+      .forEach(([k,v])=>{
+        const d = el("dl","dl"); d.innerHTML = "<dt>"+k+"</dt><dd>"+v+"</dd>"; dg.appendChild(d);
+      });
+    det.appendChild(dg);
+
+    const tl = el("div","tasks");
+    o.tasks.forEach(t=>{
+      const c = el("div","task t-"+t.type);
+      const kind = el("div","kind");
+      kind.innerHTML = t.type + '<small class="mono">'+t.id+'</small>';
+      const meta = el("div","meta");
+      meta.innerHTML = 'ETA <b class="mono">'+t.eta+'</b> · <b>'+t.crew+'</b> · <b class="mono">'+
+        t.vehicle+'</b> · '+t.serviceMin+' min on site';
+      const right = el("div","right");
+      if(t.sameVisit){ const sv = el("span","samevisit"); sv.textContent = "SAME VISIT"; right.appendChild(sv); }
+      right.appendChild(badge(t.state));
+      c.append(kind, meta, right);
+      tl.appendChild(c);
+    });
+    det.appendChild(tl);
+
+    const ul = el("ul","items");
+    o.items.forEach(x=>{ const li=el("li"); li.innerHTML='<span>'+x.qty+'×</span> '+x.name; ul.appendChild(li); });
+    det.appendChild(ul);
+
+    head.onclick = ()=>{
+      const open = row.dataset.open === "true";
+      row.dataset.open = String(!open);
+      head.setAttribute("aria-expanded", String(!open));
+      det.hidden = open;
+    };
+    if(i === 0){ row.dataset.open="true"; head.setAttribute("aria-expanded","true"); det.hidden=false; }
+    row.append(head, det);
+    host.appendChild(row);
+  });
+}
+
+function renderInbound(){
+  const b = branch(), host = document.getElementById("inbound");
+  host.textContent = "";
+  document.getElementById("icount").textContent = b.inbound.length + (b.inbound.length===1?" shipment":" shipments");
+  if(!b.inbound.length){
+    const e = el("div","empty"); e.textContent = "Nothing inbound today."; host.appendChild(e); return;
+  }
+  b.inbound.forEach(s=>{
+    const d = el("div","inb");
+    const top = el("div","inb-top");
+    const r = el("div","inb-ref"); r.innerHTML = '<span class="mono">'+s.sto+'</span>';
+    top.append(r, badge(s.state));
+    const m = el("div","inb-meta");
+    m.innerHTML = 'Arrives <b class="mono">'+s.eta+'</b><span>Window <b class="mono">'+s.window+
+      '</b></span><span><b class="num">'+Math.round(s.weightKg).toLocaleString("en-PH")+'</b> kg</span>'+
+      '<span><b class="num">'+s.lines+'</b> lines</span>';
+    const bar = el("div","bar");
+    const pct = s.state==="DELIVERED" ? 100 : s.state==="IN_TRANSIT" ? 62 : 12;
+    bar.innerHTML = '<i style="width:'+pct+'%"></i>';
+    const ul = el("ul","inb-items");
+    s.items.forEach(x=>{ const li=el("li"); li.innerHTML='<span>'+x.name+'</span><b class="num">'+x.qty+'</b>'; ul.appendChild(li); });
+    d.append(top, m, bar, ul);
+    host.appendChild(d);
+  });
+}
+
+function render(){
+  const b = branch();
+  document.getElementById("bname").textContent = b.name;
+  document.getElementById("bloc").textContent = b.city + ", " + b.province;
+  document.getElementById("brecv").innerHTML =
+    (b.format === "MALL" ? "Mall format" : "High street") + " · goods receiving <b class=\"mono\">" + b.receiving + "</b>";
+  renderRail(); renderRows(); renderInbound();
+}
+
+(function init(){
+  const sel = document.getElementById("branch");
+  DATA.branches.forEach(b=>{
+    const o = document.createElement("option"); o.value=b.id; o.textContent=b.name; sel.appendChild(o);
+  });
+  sel.value = state.branch;
+  sel.onchange = e => { state.branch = e.target.value; state.filter=null; render(); };
+  document.getElementById("q").oninput = e => { state.q = e.target.value; renderRows(); };
+  const d = new Date(DATA.orderDate + "T00:00:00+08:00");
+  document.getElementById("daychip").textContent =
+    d.toLocaleDateString("en-PH",{weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"Asia/Manila"});
+  render();
+})();
+</script>
